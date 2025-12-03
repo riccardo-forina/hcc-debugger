@@ -1,5 +1,5 @@
 {
-  "name": "frontend-starter-app",
+  "name": "hcc-debugger",
   "version": "1.2.0",
   "private": false,
   "engines": {
@@ -31,6 +31,7 @@
     "@redhat-cloud-services/frontend-components-utilities": "^7.0.9",
     "@scalprum/core": "^0.9.0",
     "@scalprum/react-core": "^0.11.1",
+    "@unleash/proxy-client-react": "^3.6.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.2"
@@ -60,6 +61,6 @@
     "webpack-bundle-analyzer": "4.10.2"
   },
   "insights": {
-    "appname": "frontend-starter-app"
+    "appname": "hcc-debugger"
   }
 }

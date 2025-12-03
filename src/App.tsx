@@ -1,24 +1,21 @@
-import React, { Fragment, useEffect } from 'react';
-import NotificationsProvider from '@redhat-cloud-services/frontend-components-notifications/NotificationsProvider';
+import React, { useEffect } from 'react';
 import { useChrome } from '@redhat-cloud-services/frontend-components/useChrome';
 
-import Routing from './Routing';
-import './App.scss';
+import { Debugger } from './Debugger';
+import { ChromeUser } from '@redhat-cloud-services/types';
 
 const App = () => {
-  const { updateDocumentTitle } = useChrome();
-
+  const { auth } = useChrome();
+  const [user, setUser] = React.useState<ChromeUser | null>(null);
   useEffect(() => {
-    // You can use directly the name of your app
-    updateDocumentTitle('Starter app');
+    auth.getUser().then((user) => {
+      user && setUser(user);
+    });
   }, []);
 
+
   return (
-    <Fragment>
-      <NotificationsProvider>
-        <Routing />
-      </NotificationsProvider>
-    </Fragment>
+    user ? <Debugger user={user} /> : null
   );
 };
 

@@ -1,5 +1,5 @@
 module.exports = {
-  appUrl: '/staging/starter',
+  appUrl: '/hcc-debugger',
   debug: true,
   useProxy: true,
   proxyVerbose: true,
@@ -9,7 +9,7 @@ module.exports = {
    * If the dash character is present, you will have add a camelCase version of it to the sassPrefix.
    * If it does not contain the dash character, remove this configuration.
    */
-  sassPrefix: '.frontend-starter-app, .frontendStarterApp',
+  sassPrefix: '.hcc-debugger',
   /**
    * Change to false after your app is registered in configuration files
    */
@@ -21,11 +21,7 @@ module.exports = {
   hotReload: process.env.HOT === 'true',
   moduleFederation: {
     exposes: {
-      './RootApp': './src/AppEntry',
-      './frontendModules/useFedModulesStore':
-        './src/hooks/sharedStores/useFedModulesStore',
-      './frontendModules/useFedModulesFilter':
-        './src/hooks/sharedStores/useFedModulesFilter',
+      './RootApp': './src/AppEntry'
     },
     exclude: ['react-router-dom'],
     shared: [
