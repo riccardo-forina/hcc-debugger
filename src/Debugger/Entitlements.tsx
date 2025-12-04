@@ -1,22 +1,22 @@
 import React, { useMemo, useState } from 'react';
 import { ChromeUser } from '@redhat-cloud-services/types';
 import {
-  Toolbar,
-  ToolbarContent,
-  ToolbarItem,
-  ToolbarGroup,
-  SearchInput,
-  ToggleGroup,
-  ToggleGroupItem,
-  Label,
   DataList,
-  DataListItem,
-  DataListItemRow,
-  DataListItemCells,
   DataListCell,
+  DataListItem,
+  DataListItemCells,
+  DataListItemRow,
   Flex,
   FlexItem,
   Icon,
+  Label,
+  SearchInput,
+  ToggleGroup,
+  ToggleGroupItem,
+  Toolbar,
+  ToolbarContent,
+  ToolbarGroup,
+  ToolbarItem,
 } from '@patternfly/react-core';
 import CheckCircleIcon from '@patternfly/react-icons/dist/esm/icons/check-circle-icon';
 import TimesCircleIcon from '@patternfly/react-icons/dist/esm/icons/times-circle-icon';
@@ -38,11 +38,13 @@ export const Entitlements = (props: EntitlementsProps) => {
   const [filter, setFilter] = useState<EntitlementFilter>('all');
 
   const entitlements: EntitlementInfo[] = useMemo(() => {
-    return Object.entries(props.user.entitlements).map(([key, entitlement]) => ({
-      name: key,
-      isEntitled: entitlement.is_entitled,
-      isTrial: entitlement.is_trial,
-    }));
+    return Object.entries(props.user.entitlements).map(
+      ([key, entitlement]) => ({
+        name: key,
+        isEntitled: entitlement.is_entitled,
+        isTrial: entitlement.is_trial,
+      }),
+    );
   }, [props.user.entitlements]);
 
   const filteredEntitlements = useMemo(() => {
@@ -71,7 +73,14 @@ export const Entitlements = (props: EntitlementsProps) => {
   const trialCount = entitlements.filter((e) => e.isTrial).length;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        width: '100%',
+      }}
+    >
       <Toolbar style={{ flexShrink: 0 }} className="pf-v6-u-px-md">
         <ToolbarContent>
           <ToolbarGroup>
@@ -131,10 +140,17 @@ export const Entitlements = (props: EntitlementsProps) => {
                 <DataListItemCells
                   dataListCells={[
                     <DataListCell key="primary">
-                      <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsSm' }}>
+                      <Flex
+                        alignItems={{ default: 'alignItemsCenter' }}
+                        spaceItems={{ default: 'spaceItemsSm' }}
+                      >
                         <FlexItem>
                           <Icon status={isEntitled ? 'success' : 'danger'}>
-                            {isEntitled ? <CheckCircleIcon /> : <TimesCircleIcon />}
+                            {isEntitled ? (
+                              <CheckCircleIcon />
+                            ) : (
+                              <TimesCircleIcon />
+                            )}
                           </Icon>
                         </FlexItem>
                         <FlexItem>

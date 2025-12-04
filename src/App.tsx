@@ -9,14 +9,13 @@ const App = () => {
   const [user, setUser] = React.useState<ChromeUser | null>(null);
   useEffect(() => {
     auth.getUser().then((user) => {
-      user && setUser(user);
+      if (user) {
+        setUser(user);
+      }
     });
   }, []);
 
-
-  return (
-    user ? <Debugger user={user} /> : null
-  );
+  return user ? <Debugger user={user} /> : null;
 };
 
 export default App;

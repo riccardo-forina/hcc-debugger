@@ -1,26 +1,36 @@
-import React, { useMemo, useState, useCallback, useEffect, useRef } from 'react';
-import { useFlags, useUnleashClient, IToggle } from '@unleash/proxy-client-react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
-  Switch,
-  Toolbar,
-  ToolbarContent,
-  ToolbarItem,
-  ToolbarGroup,
-  SearchInput,
-  ToggleGroup,
-  ToggleGroupItem,
-  Label,
-  Button,
-  DataList,
-  DataListItem,
-  DataListItemRow,
-  DataListItemCells,
-  DataListCell,
-  Flex,
-  FlexItem,
+  IToggle,
+  useFlags,
+  useUnleashClient,
+} from '@unleash/proxy-client-react';
+import {
   Alert,
   AlertActionCloseButton,
   AlertActionLink,
+  Button,
+  DataList,
+  DataListCell,
+  DataListItem,
+  DataListItemCells,
+  DataListItemRow,
+  Flex,
+  FlexItem,
+  Label,
+  SearchInput,
+  Switch,
+  ToggleGroup,
+  ToggleGroupItem,
+  Toolbar,
+  ToolbarContent,
+  ToolbarGroup,
+  ToolbarItem,
 } from '@patternfly/react-core';
 
 const STORAGE_KEY = 'hcc-debugger-flag-overrides';
@@ -57,7 +67,7 @@ function saveStoredOverrides(overrides: StoredOverrides): void {
 function clearStoredOverrides(): void {
   try {
     localStorage.removeItem(STORAGE_KEY);
-  } catch (e) {
+  } catch {
     // Ignore
   }
 }
@@ -72,7 +82,8 @@ export const Flags = () => {
   const [activeOverrides, setActiveOverrides] = useState<StoredOverrides>({});
 
   // Pending overrides from localStorage (shown after hard refresh)
-  const [pendingOverrides, setPendingOverrides] = useState<StoredOverrides | null>(null);
+  const [pendingOverrides, setPendingOverrides] =
+    useState<StoredOverrides | null>(null);
 
   const hasCheckedPending = useRef(false);
 
@@ -96,7 +107,10 @@ export const Flags = () => {
         }
         // If current value is !original, override is still active
         else if (toggle.enabled === !originalValue) {
-          setActiveOverrides((prev) => ({ ...prev, [flagName]: originalValue }));
+          setActiveOverrides((prev) => ({
+            ...prev,
+            [flagName]: originalValue,
+          }));
         }
       }
     }
@@ -133,34 +147,38 @@ export const Flags = () => {
     clearStoredOverrides();
   }, []);
 
-  const toggleFlagOverride = useCallback((flagName: string) => {
-    const toggles = (client as unknown as { toggles: IToggle[] }).toggles;
-    const toggle = toggles.find((t) => t.name === flagName);
+  const toggleFlagOverride = useCallback(
+    (flagName: string) => {
+      const toggles = (client as unknown as { toggles: IToggle[] }).toggles;
+      const toggle = toggles.find((t) => t.name === flagName);
 
-    if (toggle) {
-      const currentValue = toggle.enabled;
-      const newValue = !currentValue;
+      if (toggle) {
+        const currentValue = toggle.enabled;
+        const newValue = !currentValue;
 
-      toggle.enabled = newValue;
+        toggle.enabled = newValue;
 
-      setActiveOverrides((prev) => {
-        // If not yet overridden, store original value
-        if (!(flagName in prev)) {
-          return { ...prev, [flagName]: currentValue };
-        }
+        setActiveOverrides((prev) => {
+          // If not yet overridden, store original value
+          if (!(flagName in prev)) {
+            return { ...prev, [flagName]: currentValue };
+          }
 
-        // If toggling back to original, remove from overrides
-        if (newValue === prev[flagName]) {
-          const { [flagName]: _, ...rest } = prev;
-          return rest;
-        }
+          // If toggling back to original, remove from overrides
+          if (newValue === prev[flagName]) {
+            const { [flagName]: _removed, ...rest } = prev;
+            void _removed;
+            return rest;
+          }
 
-        return prev;
-      });
+          return prev;
+        });
 
-      client.emit('update');
-    }
-  }, [client]);
+        client.emit('update');
+      }
+    },
+    [client],
+  );
 
   const resetAllOverrides = useCallback(() => {
     const toggles = (client as unknown as { toggles: IToggle[] }).toggles;
@@ -181,7 +199,9 @@ export const Flags = () => {
 
     if (searchValue) {
       const lowerSearch = searchValue.toLowerCase();
-      result = result.filter((flag) => flag.name.toLowerCase().includes(lowerSearch));
+      result = result.filter((flag) =>
+        flag.name.toLowerCase().includes(lowerSearch),
+      );
     }
 
     if (enabledFilter === 'enabled') {
@@ -198,20 +218,35 @@ export const Flags = () => {
   }, [flags, searchValue, enabledFilter, activeOverrides]);
 
   const overrideCount = Object.keys(activeOverrides).length;
-  const pendingCount = pendingOverrides ? Object.keys(pendingOverrides).length : 0;
+  const pendingCount = pendingOverrides
+    ? Object.keys(pendingOverrides).length
+    : 0;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        width: '100%',
+      }}
+    >
       {pendingCount > 0 && (
         <Alert
           variant="info"
           isInline
           title={`${pendingCount} flag override${pendingCount > 1 ? 's' : ''} from previous session`}
-          actionClose={<AlertActionCloseButton onClose={dismissPendingOverrides} />}
+          actionClose={
+            <AlertActionCloseButton onClose={dismissPendingOverrides} />
+          }
           actionLinks={
             <>
-              <AlertActionLink onClick={applyPendingOverrides}>Restore</AlertActionLink>
-              <AlertActionLink onClick={dismissPendingOverrides}>Dismiss</AlertActionLink>
+              <AlertActionLink onClick={applyPendingOverrides}>
+                Restore
+              </AlertActionLink>
+              <AlertActionLink onClick={dismissPendingOverrides}>
+                Dismiss
+              </AlertActionLink>
             </>
           }
         >
@@ -288,7 +323,8 @@ export const Flags = () => {
         <DataList aria-label="Feature flags list" isCompact>
           {filteredAndSortedFlags.map(({ name, enabled, variant }) => {
             const isOverridden = name in activeOverrides;
-            const hasPayload = variant.payload !== undefined && variant.payload !== null;
+            const hasPayload =
+              variant.payload !== undefined && variant.payload !== null;
 
             return (
               <DataListItem key={name} aria-labelledby={`flag-${name}`}>
@@ -296,9 +332,15 @@ export const Flags = () => {
                   <DataListItemCells
                     dataListCells={[
                       <DataListCell key="primary">
-                        <Flex direction={{ default: 'column' }} spaceItems={{ default: 'spaceItemsXs' }}>
+                        <Flex
+                          direction={{ default: 'column' }}
+                          spaceItems={{ default: 'spaceItemsXs' }}
+                        >
                           <FlexItem>
-                            <Flex spaceItems={{ default: 'spaceItemsSm' }} alignItems={{ default: 'alignItemsCenter' }}>
+                            <Flex
+                              spaceItems={{ default: 'spaceItemsSm' }}
+                              alignItems={{ default: 'alignItemsCenter' }}
+                            >
                               <FlexItem>
                                 <strong id={`flag-${name}`}>{name}</strong>
                               </FlexItem>
@@ -312,9 +354,18 @@ export const Flags = () => {
                             </Flex>
                           </FlexItem>
                           <FlexItem>
-                            <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }} alignItems={{ default: 'alignItemsCenter' }}>
+                            <Flex
+                              justifyContent={{
+                                default: 'justifyContentSpaceBetween',
+                              }}
+                              alignItems={{ default: 'alignItemsCenter' }}
+                            >
                               <FlexItem>
-                                <small style={{ color: 'var(--pf-v6-global--Color--200)' }}>
+                                <small
+                                  style={{
+                                    color: 'var(--pf-v6-global--Color--200)',
+                                  }}
+                                >
                                   Variant: {variant.name}
                                 </small>
                               </FlexItem>
@@ -329,7 +380,18 @@ export const Flags = () => {
                           </FlexItem>
                           {hasPayload && (
                             <FlexItem>
-                              <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.85em', background: 'var(--pf-v6-global--BackgroundColor--200)', padding: '8px', borderRadius: '4px' }}>
+                              <pre
+                                style={{
+                                  margin: 0,
+                                  whiteSpace: 'pre-wrap',
+                                  wordBreak: 'break-word',
+                                  fontSize: '0.85em',
+                                  background:
+                                    'var(--pf-v6-global--BackgroundColor--200)',
+                                  padding: '8px',
+                                  borderRadius: '4px',
+                                }}
+                              >
                                 {JSON.stringify(variant.payload, null, 2)}
                               </pre>
                             </FlexItem>

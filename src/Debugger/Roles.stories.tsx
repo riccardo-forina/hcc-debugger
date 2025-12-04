@@ -1,8 +1,11 @@
-import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-webpack5';
-import { within, userEvent, expect } from 'storybook/test';
+import { expect, userEvent, within } from 'storybook/test';
 import { Roles } from './Roles';
-import { mockUser, mockPermissions, mockPermissionsMany } from './mocks/chromeMock';
+import {
+  mockPermissions,
+  mockPermissionsMany,
+  mockUser,
+} from './mocks/chromeMock';
 
 const meta: Meta<typeof Roles> = {
   title: 'Debugger/Roles',
@@ -59,13 +62,13 @@ export const SearchTest: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    
+
     // Wait for loading to finish
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     const searchInput = canvas.getByPlaceholderText('Search permissions...');
     await userEvent.type(searchInput, 'inventory');
-    
+
     // Verify filtering happened
     const countText = canvas.getByText(/\d+ of \d+/);
     expect(countText).toBeInTheDocument();
@@ -83,10 +86,10 @@ export const AppFilterTest: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    
+
     // Wait for loading to finish
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     // Find and click the app dropdown
     const dropdown = canvas.getByText(/All apps/);
     await userEvent.click(dropdown);

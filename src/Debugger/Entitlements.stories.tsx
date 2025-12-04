@@ -1,12 +1,12 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-webpack5';
-import { within, userEvent, expect } from 'storybook/test';
+import { expect, userEvent, within } from 'storybook/test';
 import { Entitlements } from './Entitlements';
 import {
   mockUser,
   mockUserAllEntitled,
-  mockUserNoneEntitled,
   mockUserManyTrials,
+  mockUserNoneEntitled,
 } from './mocks/chromeMock';
 
 const meta: Meta<typeof Entitlements> = {
@@ -17,7 +17,9 @@ const meta: Meta<typeof Entitlements> = {
   },
   decorators: [
     (Story) => (
-      <div style={{ height: '500px', display: 'flex', flexDirection: 'column' }}>
+      <div
+        style={{ height: '500px', display: 'flex', flexDirection: 'column' }}
+      >
         <Story />
       </div>
     ),

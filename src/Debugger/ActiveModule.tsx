@@ -1,30 +1,30 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import useChrome from '@redhat-cloud-services/frontend-components/useChrome';
 import { getScalprum } from '@scalprum/core';
 import {
+  Button,
   Card,
   CardBody,
   CardTitle,
   DescriptionList,
+  DescriptionListDescription,
   DescriptionListGroup,
   DescriptionListTerm,
-  DescriptionListDescription,
-  Label,
+  EmptyState,
+  EmptyStateActions,
+  EmptyStateBody,
+  EmptyStateFooter,
   Flex,
   FlexItem,
-  Button,
-  Spinner,
-  EmptyState,
-  EmptyStateBody,
-  EmptyStateActions,
-  EmptyStateFooter,
   Icon,
+  Label,
+  Spinner,
 } from '@patternfly/react-core';
 import {
-  GithubIcon,
-  ExternalLinkAltIcon,
-  SyncIcon,
   BugIcon,
+  ExternalLinkAltIcon,
+  GithubIcon,
+  SyncIcon,
 } from '@patternfly/react-icons';
 import {
   AppRegistryEntry,
@@ -43,7 +43,11 @@ interface ModuleInfo {
   manifestLocation?: string;
 }
 
-const getModuleInfo = (app: string, bundle: string, bundleData: { bundleTitle?: string } | undefined): ModuleInfo => {
+const getModuleInfo = (
+  app: string,
+  bundle: string,
+  bundleData: { bundleTitle?: string } | undefined,
+): ModuleInfo => {
   const pathname = window.location.pathname;
   let scope: string | undefined;
   let manifestLocation: string | undefined;
@@ -73,12 +77,14 @@ const getModuleInfo = (app: string, bundle: string, bundleData: { bundleTitle?: 
 export const ActiveModule = () => {
   const { getApp, getBundle, getBundleData } = useChrome();
   const [moduleInfo, setModuleInfo] = useState<ModuleInfo>(() =>
-    getModuleInfo(getApp(), getBundle(), getBundleData())
+    getModuleInfo(getApp(), getBundle(), getBundleData()),
   );
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
-  
+
   // Registry state
-  const [registryEntry, setRegistryEntry] = useState<AppRegistryEntry | undefined>();
+  const [registryEntry, setRegistryEntry] = useState<
+    AppRegistryEntry | undefined
+  >();
   const [registryLoading, setRegistryLoading] = useState(false);
   const [registryError, setRegistryError] = useState<string | undefined>();
   const [scanProgress, setScanProgress] = useState<string>('');
@@ -97,24 +103,27 @@ export const ActiveModule = () => {
     setLastUpdated(new Date());
   }, [getApp, getBundle, getBundleData]);
 
-  const fetchRegistryEntry = useCallback(async (appname: string, pathname: string) => {
-    if (!isRegistryConfigured()) {
-      setRegistryEntry(undefined);
-      return;
-    }
+  const fetchRegistryEntry = useCallback(
+    async (appname: string, pathname: string) => {
+      if (!isRegistryConfigured()) {
+        setRegistryEntry(undefined);
+        return;
+      }
 
-    setRegistryLoading(true);
-    setRegistryError(undefined);
-    try {
-      const entry = await getAppRegistryEntry(appname, pathname);
-      setRegistryEntry(entry);
-    } catch (e) {
-      setRegistryError('Failed to load repo info from GitHub');
-      console.error('Error fetching registry entry:', e);
-    } finally {
-      setRegistryLoading(false);
-    }
-  }, []);
+      setRegistryLoading(true);
+      setRegistryError(undefined);
+      try {
+        const entry = await getAppRegistryEntry(appname, pathname);
+        setRegistryEntry(entry);
+      } catch (e) {
+        setRegistryError('Failed to load repo info from GitHub');
+        console.error('Error fetching registry entry:', e);
+      } finally {
+        setRegistryLoading(false);
+      }
+    },
+    [],
+  );
 
   // Set up navigation listeners
   useEffect(() => {
@@ -147,17 +156,27 @@ export const ActiveModule = () => {
     try {
       await refreshRegistry();
       await fetchRegistryEntry(moduleInfo.app, moduleInfo.pathname);
-    } catch (e) {
+    } catch {
       setRegistryError('Failed to refresh');
     }
   };
 
   return (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <div
+      style={{
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+      }}
+    >
       {/* Module Info Card */}
       <Card isCompact>
         <CardTitle>
-          <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }} alignItems={{ default: 'alignItemsCenter' }}>
+          <Flex
+            justifyContent={{ default: 'justifyContentSpaceBetween' }}
+            alignItems={{ default: 'alignItemsCenter' }}
+          >
             <FlexItem>Active Module</FlexItem>
             <FlexItem>
               <Label color="blue" isCompact>
@@ -185,7 +204,10 @@ export const ActiveModule = () => {
               <DescriptionListDescription>
                 {moduleInfo.bundleTitle}
                 {moduleInfo.bundleTitle !== moduleInfo.bundle && (
-                  <> (<code>{moduleInfo.bundle}</code>)</>
+                  <>
+                    {' '}
+                    (<code>{moduleInfo.bundle}</code>)
+                  </>
                 )}
               </DescriptionListDescription>
             </DescriptionListGroup>
@@ -215,7 +237,10 @@ export const ActiveModule = () => {
       {isRegistryConfigured() && (
         <Card isCompact>
           <CardTitle>
-            <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }} alignItems={{ default: 'alignItemsCenter' }}>
+            <Flex
+              justifyContent={{ default: 'justifyContentSpaceBetween' }}
+              alignItems={{ default: 'alignItemsCenter' }}
+            >
               <FlexItem>Source Repository</FlexItem>
               <FlexItem>
                 <Button
@@ -230,9 +255,18 @@ export const ActiveModule = () => {
           </CardTitle>
           <CardBody>
             {registryLoading ? (
-              <Flex justifyContent={{ default: 'justifyContentCenter' }} direction={{ default: 'column' }} alignItems={{ default: 'alignItemsCenter' }}>
+              <Flex
+                justifyContent={{ default: 'justifyContentCenter' }}
+                direction={{ default: 'column' }}
+                alignItems={{ default: 'alignItemsCenter' }}
+              >
                 <Spinner size="md" />
-                <small style={{ marginTop: '8px', color: 'var(--pf-v5-global--Color--200)' }}>
+                <small
+                  style={{
+                    marginTop: '8px',
+                    color: 'var(--pf-v5-global--Color--200)',
+                  }}
+                >
                   {scanProgress || 'Loading...'}
                 </small>
               </Flex>
@@ -273,8 +307,18 @@ export const ActiveModule = () => {
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                 </DescriptionList>
-                <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--pf-v5-global--BorderColor--100)' }}>
-                  <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsSm' }}>
+                <div
+                  style={{
+                    marginTop: '16px',
+                    paddingTop: '16px',
+                    borderTop:
+                      '1px solid var(--pf-v5-global--BorderColor--100)',
+                  }}
+                >
+                  <Flex
+                    alignItems={{ default: 'alignItemsCenter' }}
+                    spaceItems={{ default: 'spaceItemsSm' }}
+                  >
                     <FlexItem>Found a bug?</FlexItem>
                     <FlexItem>
                       <Button
@@ -290,7 +334,13 @@ export const ActiveModule = () => {
                       </Button>
                     </FlexItem>
                   </Flex>
-                  <small style={{ color: 'var(--pf-v5-global--Color--200)', display: 'block', marginTop: '8px' }}>
+                  <small
+                    style={{
+                      color: 'var(--pf-v5-global--Color--200)',
+                      display: 'block',
+                      marginTop: '8px',
+                    }}
+                  >
                     Note: The team might prefer using Jira for bug tracking.
                   </small>
                 </div>
@@ -298,10 +348,12 @@ export const ActiveModule = () => {
             ) : (
               <EmptyState variant="sm">
                 <EmptyStateBody>
-                  Could not find source repo for <strong>{moduleInfo.app}</strong>.
+                  Could not find source repo for{' '}
+                  <strong>{moduleInfo.app}</strong>.
                   <br />
                   <small style={{ color: 'var(--pf-v5-global--Color--200)' }}>
-                    Auto-discovered from deploy/frontend.yaml files in RedHatInsights org.
+                    Auto-discovered from deploy/frontend.yaml files in
+                    RedHatInsights org.
                   </small>
                 </EmptyStateBody>
               </EmptyState>

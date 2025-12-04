@@ -1,27 +1,27 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ChromeUser } from '@redhat-cloud-services/types';
 import useChrome from '@redhat-cloud-services/frontend-components/useChrome';
 import {
-  Toolbar,
-  ToolbarContent,
-  ToolbarItem,
-  ToolbarGroup,
-  SearchInput,
   DataList,
-  DataListItem,
-  DataListItemRow,
-  DataListItemCells,
   DataListCell,
+  DataListItem,
+  DataListItemCells,
+  DataListItemRow,
+  EmptyState,
+  EmptyStateBody,
   Flex,
   FlexItem,
   Label,
-  Spinner,
-  EmptyState,
-  EmptyStateBody,
   MenuToggle,
+  SearchInput,
   Select,
-  SelectOption,
   SelectList,
+  SelectOption,
+  Spinner,
+  Toolbar,
+  ToolbarContent,
+  ToolbarGroup,
+  ToolbarItem,
 } from '@patternfly/react-core';
 
 export interface RolesProps {
@@ -49,15 +49,15 @@ export const Roles = (props: RolesProps) => {
       try {
         const userPermissions = await getUserPermissions();
         if (cancelled) return;
-        
+
         // Deduplicate permissions
         const seen = new Set<string>();
         const parsed: ParsedPermission[] = [];
-        
+
         for (const p of userPermissions as { permission: string }[]) {
           if (seen.has(p.permission)) continue;
           seen.add(p.permission);
-          
+
           const parts = p.permission.split(':');
           parsed.push({
             raw: p.permission,
@@ -66,7 +66,7 @@ export const Roles = (props: RolesProps) => {
             operation: parts[2] || '*',
           });
         }
-        
+
         setPermissions(parsed);
       } catch (error) {
         console.error('Failed to fetch permissions:', error);
@@ -75,7 +75,9 @@ export const Roles = (props: RolesProps) => {
       }
     }
     getPermissions();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [getUserPermissions]);
 
   // Get unique apps for filtering
@@ -101,7 +103,8 @@ export const Roles = (props: RolesProps) => {
     // Sort by app, then resource, then operation
     result.sort((a, b) => {
       if (a.app !== b.app) return a.app.localeCompare(b.app);
-      if (a.resource !== b.resource) return a.resource.localeCompare(b.resource);
+      if (a.resource !== b.resource)
+        return a.resource.localeCompare(b.resource);
       return a.operation.localeCompare(b.operation);
     });
 
@@ -122,7 +125,14 @@ export const Roles = (props: RolesProps) => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100%',
+        }}
+      >
         <Spinner size="lg" />
       </div>
     );
@@ -139,7 +149,14 @@ export const Roles = (props: RolesProps) => {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        width: '100%',
+      }}
+    >
       <Toolbar style={{ flexShrink: 0 }} className="pf-v6-u-px-md">
         <ToolbarContent>
           <ToolbarGroup>
@@ -184,7 +201,11 @@ export const Roles = (props: RolesProps) => {
                     All apps ({apps.length})
                   </SelectOption>
                   {apps.map((app) => (
-                    <SelectOption key={app} value={app} isSelected={selectedApp === app}>
+                    <SelectOption
+                      key={app}
+                      value={app}
+                      isSelected={selectedApp === app}
+                    >
                       {app}
                     </SelectOption>
                   ))}
@@ -203,15 +224,25 @@ export const Roles = (props: RolesProps) => {
                   <DataListItemCells
                     dataListCells={[
                       <DataListCell key="header">
-                        <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsSm' }}>
+                        <Flex
+                          alignItems={{ default: 'alignItemsCenter' }}
+                          spaceItems={{ default: 'spaceItemsSm' }}
+                        >
                           <FlexItem>
-                            <strong id={`app-${app}`} style={{ color: 'var(--pf-v6-global--primary-color--100)' }}>
+                            <strong
+                              id={`app-${app}`}
+                              style={{
+                                color:
+                                  'var(--pf-v6-global--primary-color--100)',
+                              }}
+                            >
                               {app}
                             </strong>
                           </FlexItem>
                           <FlexItem>
                             <Label isCompact color="grey">
-                              {perms.length} permission{perms.length > 1 ? 's' : ''}
+                              {perms.length} permission
+                              {perms.length > 1 ? 's' : ''}
                             </Label>
                           </FlexItem>
                         </Flex>
@@ -221,7 +252,10 @@ export const Roles = (props: RolesProps) => {
                 </DataListItemRow>
               </DataListItem>
               {perms.map((perm, idx) => (
-                <DataListItem key={`${perm.raw}-${idx}`} aria-labelledby={`perm-${perm.raw}`}>
+                <DataListItem
+                  key={`${perm.raw}-${idx}`}
+                  aria-labelledby={`perm-${perm.raw}`}
+                >
                   <DataListItemRow>
                     <DataListItemCells
                       dataListCells={[
@@ -233,9 +267,23 @@ export const Roles = (props: RolesProps) => {
                           >
                             <FlexItem>
                               <span id={`perm-${perm.raw}`}>
-                                <span style={{ color: 'var(--pf-v6-global--Color--200)' }}>{perm.resource}</span>
-                                <span style={{ color: 'var(--pf-v6-global--Color--400)' }}>:</span>
-                                <span style={{ fontWeight: 500 }}>{perm.operation}</span>
+                                <span
+                                  style={{
+                                    color: 'var(--pf-v6-global--Color--200)',
+                                  }}
+                                >
+                                  {perm.resource}
+                                </span>
+                                <span
+                                  style={{
+                                    color: 'var(--pf-v6-global--Color--400)',
+                                  }}
+                                >
+                                  :
+                                </span>
+                                <span style={{ fontWeight: 500 }}>
+                                  {perm.operation}
+                                </span>
                               </span>
                             </FlexItem>
                           </Flex>

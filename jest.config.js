@@ -2,11 +2,11 @@ const transformIgnorePatterns = ['node_modules/(?!(uuid)/)'];
 
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
-  preset: 'ts-jest/presets/js-with-babel-esm',
+  preset: 'ts-jest',
   testEnvironment: 'jsdom',
   coverageDirectory: './coverage/',
   collectCoverage: true,
-  collectCoverageFrom: ['src/**/*.js', '!src/**/stories/*'],
+  collectCoverageFrom: ['src/**/*.ts', 'src/**/*.tsx', '!src/**/*.stories.*'],
   roots: ['<rootDir>/src/'],
   moduleNameMapper: {
     '\\.(css|scss)$': 'identity-obj-proxy',

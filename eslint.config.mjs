@@ -1,14 +1,11 @@
 // For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
 import storybook from "eslint-plugin-storybook";
+import fecPlugin from '@redhat-cloud-services/eslint-config-redhat-cloud-services';
+import tsParser from '@typescript-eslint/parser';
+import tseslint from 'typescript-eslint';
 
-/* eslint-disable @typescript-eslint/no-require-imports */
-const { defineConfig } = require('eslint/config');
-const fecPlugin = require('@redhat-cloud-services/eslint-config-redhat-cloud-services');
-const tsParser = require('@typescript-eslint/parser');
-const tseslint = require('typescript-eslint');
-
-module.exports = defineConfig(
-  fecPlugin,
+export default [
+  ...fecPlugin,
   {
     languageOptions: {
       globals: {
@@ -26,7 +23,7 @@ module.exports = defineConfig(
       ],
     },
   },
-  tseslint.configs.recommended,
+  ...tseslint.configs.recommended,
   {
     files: ['src/**/*.ts', 'src/**/*.tsx'],
     languageOptions: {
@@ -37,12 +34,6 @@ module.exports = defineConfig(
       '@typescript-eslint/no-unused-vars': 'error',
     },
   },
-  {
-    files: ['cypress/**/*.ts', 'cypress/**/*.tsx'],
-    parser: '@typescript-eslint/parser',
-    plugins: ['jest'],
-    rules: {
-      'jest/expect-expect': 'off',
-    },
-  },
-);
+  ...storybook.configs["flat/recommended"],
+];
+

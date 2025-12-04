@@ -1,14 +1,14 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-webpack5';
-import { within, userEvent, expect } from 'storybook/test';
+import { expect, userEvent, within } from 'storybook/test';
 import {
+  Content,
   Drawer,
   DrawerContent,
   DrawerContentBody,
-  DrawerPanelContent,
   DrawerHead,
   DrawerPanelBody,
-  Content,
+  DrawerPanelContent,
 } from '@patternfly/react-core';
 import { Debugger } from './Debugger';
 import { mockUser } from './mocks/chromeMock';
@@ -68,17 +68,21 @@ export const Default: Story = {};
 export const TabSwitching: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    
+
     // Click on Flags tab
     await userEvent.click(canvas.getByText('Flags'));
     expect(canvas.getByPlaceholderText('Search flags...')).toBeInTheDocument();
-    
+
     // Click on Entitlements tab
     await userEvent.click(canvas.getByText('Entitlements'));
-    expect(canvas.getByPlaceholderText('Search entitlements...')).toBeInTheDocument();
-    
+    expect(
+      canvas.getByPlaceholderText('Search entitlements...'),
+    ).toBeInTheDocument();
+
     // Click on Roles tab
     await userEvent.click(canvas.getByText('Roles'));
-    expect(canvas.getByPlaceholderText('Search permissions...')).toBeInTheDocument();
+    expect(
+      canvas.getByPlaceholderText('Search permissions...'),
+    ).toBeInTheDocument();
   },
 };

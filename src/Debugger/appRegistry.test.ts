@@ -3,11 +3,11 @@
  */
 
 import {
-  getAppRegistryEntry,
   clearCache,
-  setProgressCallback,
   fetchAppRegistry,
+  getAppRegistryEntry,
   isRegistryConfigured,
+  setProgressCallback,
 } from './appRegistry';
 
 // Mock localStorage
@@ -115,7 +115,10 @@ describe('appRegistry', () => {
         }
 
         // Package.json files
-        if (url.includes('insights-advisor-frontend') && url.includes('package.json')) {
+        if (
+          url.includes('insights-advisor-frontend') &&
+          url.includes('package.json')
+        ) {
           return Promise.resolve({
             ok: true,
             json: () => Promise.resolve(mockPackageJsonAdvisor),
@@ -127,7 +130,10 @@ describe('appRegistry', () => {
             json: () => Promise.resolve(mockPackageJsonRbac),
           });
         }
-        if (url.includes('learning-resources') && url.includes('package.json')) {
+        if (
+          url.includes('learning-resources') &&
+          url.includes('package.json')
+        ) {
           return Promise.resolve({
             ok: true,
             json: () => Promise.resolve(mockPackageJsonLearningResources),
@@ -135,7 +141,10 @@ describe('appRegistry', () => {
         }
 
         // Frontend.yaml files
-        if (url.includes('insights-advisor-frontend') && url.includes('frontend.yaml')) {
+        if (
+          url.includes('insights-advisor-frontend') &&
+          url.includes('frontend.yaml')
+        ) {
           return Promise.resolve({
             ok: true,
             text: () => Promise.resolve(mockFrontendYamlAdvisor),
@@ -160,38 +169,55 @@ describe('appRegistry', () => {
       const entry = await getAppRegistryEntry('advisor', '/insights/advisor');
       expect(entry).toBeDefined();
       expect(entry?.appId).toBe('advisor');
-      expect(entry?.githubRepo).toBe('RedHatInsights/insights-advisor-frontend');
+      expect(entry?.githubRepo).toBe(
+        'RedHatInsights/insights-advisor-frontend',
+      );
     });
 
     it('should match pathname with prefix (subpath)', async () => {
-      const entry = await getAppRegistryEntry('advisor', '/insights/advisor/recommendations/123');
+      const entry = await getAppRegistryEntry(
+        'advisor',
+        '/insights/advisor/recommendations/123',
+      );
       expect(entry).toBeDefined();
       expect(entry?.appId).toBe('advisor');
     });
 
     it('should match most specific path (longest prefix)', async () => {
       // /insights/advisor/systems should match advisor-systems, not advisor
-      const entry = await getAppRegistryEntry('advisor', '/insights/advisor/systems');
+      const entry = await getAppRegistryEntry(
+        'advisor',
+        '/insights/advisor/systems',
+      );
       expect(entry).toBeDefined();
       expect(entry?.appId).toBe('advisor-systems');
     });
 
     it('should not match partial path segments', async () => {
       // /insights/advisorXYZ should NOT match /insights/advisor
-      const entry = await getAppRegistryEntry('advisorXYZ', '/insights/advisorXYZ');
+      const entry = await getAppRegistryEntry(
+        'advisorXYZ',
+        '/insights/advisorXYZ',
+      );
       // Should fall back to appname (which won't match either)
       expect(entry).toBeUndefined();
     });
 
     it('should match rbac paths correctly', async () => {
-      const entry = await getAppRegistryEntry('user-access', '/iam/user-access/groups');
+      const entry = await getAppRegistryEntry(
+        'user-access',
+        '/iam/user-access/groups',
+      );
       expect(entry).toBeDefined();
       expect(entry?.appId).toBe('iam-user-access');
       expect(entry?.githubRepo).toBe('RedHatInsights/insights-rbac-ui');
     });
 
     it('should match my-user-access path', async () => {
-      const entry = await getAppRegistryEntry('my-user-access', '/iam/my-user-access');
+      const entry = await getAppRegistryEntry(
+        'my-user-access',
+        '/iam/my-user-access',
+      );
       expect(entry).toBeDefined();
       expect(entry?.appId).toBe('my-user-access');
       expect(entry?.githubRepo).toBe('RedHatInsights/insights-rbac-ui');
@@ -207,7 +233,10 @@ describe('appRegistry', () => {
             json: () => Promise.resolve(mockRepoListResponse),
           });
         }
-        if (url.includes('learning-resources') && url.includes('package.json')) {
+        if (
+          url.includes('learning-resources') &&
+          url.includes('package.json')
+        ) {
           return Promise.resolve({
             ok: true,
             json: () => Promise.resolve(mockPackageJsonLearningResources),
@@ -221,7 +250,10 @@ describe('appRegistry', () => {
     });
 
     it('should fall back to appname when no path match', async () => {
-      const entry = await getAppRegistryEntry('learning-resources', '/insights/learning-resources');
+      const entry = await getAppRegistryEntry(
+        'learning-resources',
+        '/insights/learning-resources',
+      );
       expect(entry).toBeDefined();
       expect(entry?.appId).toBe('learning-resources');
       expect(entry?.githubRepo).toBe('RedHatInsights/learning-resources');
@@ -244,16 +276,26 @@ describe('appRegistry', () => {
           });
         }
         // Starter app has placeholder values
-        if (url.includes('frontend-starter-app') && url.includes('package.json')) {
+        if (
+          url.includes('frontend-starter-app') &&
+          url.includes('package.json')
+        ) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({ insights: { appname: 'frontend-starter-app' } }),
+            json: () =>
+              Promise.resolve({
+                insights: { appname: 'frontend-starter-app' },
+              }),
           });
         }
-        if (url.includes('frontend-starter-app') && url.includes('frontend.yaml')) {
+        if (
+          url.includes('frontend-starter-app') &&
+          url.includes('frontend.yaml')
+        ) {
           return Promise.resolve({
             ok: true,
-            text: () => Promise.resolve(`
+            text: () =>
+              Promise.resolve(`
 objects:
   - spec:
       module:
@@ -289,7 +331,8 @@ objects:
         if (url.includes('api.github.com/orgs/RedHatInsights/repos')) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve([{ name: 'test-app', archived: false }]),
+            json: () =>
+              Promise.resolve([{ name: 'test-app', archived: false }]),
           });
         }
         if (url.includes('test-app') && url.includes('package.json')) {
@@ -307,9 +350,11 @@ objects:
 
       // Clear in-memory cache but keep localStorage
       const fetchCallCount = mockFetch.mock.calls.length;
-      
+
       // Manually clear the in-memory cache by calling clearCache and restoring localStorage
-      const storedData = localStorageMock.getItem('hcc-debugger-app-registry-v2');
+      const storedData = localStorageMock.getItem(
+        'hcc-debugger-app-registry-v2',
+      );
       clearCache();
       if (storedData) {
         localStorageMock.setItem('hcc-debugger-app-registry-v2', storedData);
@@ -317,7 +362,7 @@ objects:
 
       // Second load - should use localStorage
       await fetchAppRegistry();
-      
+
       // Should not have made additional fetch calls (loaded from localStorage)
       expect(mockFetch.mock.calls.length).toBe(fetchCallCount);
     });
@@ -336,7 +381,9 @@ objects:
       await fetchAppRegistry();
       clearCache();
 
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('hcc-debugger-app-registry-v2');
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith(
+        'hcc-debugger-app-registry-v2',
+      );
     });
   });
 
@@ -349,7 +396,8 @@ objects:
         if (url.includes('api.github.com/orgs/RedHatInsights/repos')) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve([{ name: 'test-app', archived: false }]),
+            json: () =>
+              Promise.resolve([{ name: 'test-app', archived: false }]),
           });
         }
         return Promise.resolve({ ok: false, status: 404 });
@@ -358,7 +406,9 @@ objects:
       await fetchAppRegistry();
 
       expect(progressFn).toHaveBeenCalled();
-      expect(progressFn).toHaveBeenCalledWith(expect.stringContaining('Fetching'));
+      expect(progressFn).toHaveBeenCalledWith(
+        expect.stringContaining('Fetching'),
+      );
 
       setProgressCallback(null);
     });
@@ -384,11 +434,14 @@ objects:
     it('should use stale cache when API returns no results', async () => {
       // Manually set up stale cache in localStorage (simulating previous session)
       const staleCache: [string, { appId: string; githubRepo: string }][] = [
-        ['appname:cached-app', { appId: 'cached-app', githubRepo: 'RedHatInsights/cached-app' }],
+        [
+          'appname:cached-app',
+          { appId: 'cached-app', githubRepo: 'RedHatInsights/cached-app' },
+        ],
       ];
       const staleData = JSON.stringify({
         data: staleCache,
-        timestamp: Date.now() - (8 * 24 * 60 * 60 * 1000), // 8 days ago (expired)
+        timestamp: Date.now() - 8 * 24 * 60 * 60 * 1000, // 8 days ago (expired)
       });
       localStorageStore['hcc-debugger-app-registry-v2'] = staleData;
 
@@ -406,7 +459,7 @@ objects:
       // Should use stale cache since API returns no results
       const entries = await fetchAppRegistry();
       expect(entries.length).toBeGreaterThan(0);
-      expect(entries.some(e => e.appId === 'cached-app')).toBe(true);
+      expect(entries.some((e) => e.appId === 'cached-app')).toBe(true);
     });
   });
 
@@ -422,7 +475,8 @@ objects:
         if (url.includes('foo-app') && url.includes('frontend.yaml')) {
           return Promise.resolve({
             ok: true,
-            text: () => Promise.resolve(`
+            text: () =>
+              Promise.resolve(`
 objects:
   - spec:
       module:
@@ -463,4 +517,3 @@ objects:
     });
   });
 });
-

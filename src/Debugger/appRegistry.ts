@@ -1,6 +1,6 @@
 /**
  * App Registry - Auto-discovered from RedHatInsights repos
- * 
+ *
  * Matches apps by:
  * 1. insights.appname in package.json
  * 2. module IDs from bundleSegments in frontend.yaml
@@ -55,7 +55,10 @@ function dedupeEntries(entries: StoredRegistryData): AppRegistryEntry[] {
 /**
  * Load registry from localStorage
  */
-function loadFromStorage(): { data: StoredRegistryData; timestamp: number } | null {
+function loadFromStorage(): {
+  data: StoredRegistryData;
+  timestamp: number;
+} | null {
   try {
     const stored = localStorage.getItem(CACHE_KEY);
     if (stored) {
@@ -75,10 +78,13 @@ function loadFromStorage(): { data: StoredRegistryData; timestamp: number } | nu
  */
 function saveToStorage(data: StoredRegistryData): void {
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-      data,
-      timestamp: Date.now(),
-    }));
+    localStorage.setItem(
+      CACHE_KEY,
+      JSON.stringify({
+        data,
+        timestamp: Date.now(),
+      }),
+    );
   } catch (e) {
     console.warn('Failed to save registry to localStorage:', e);
   }
@@ -92,7 +98,7 @@ export function clearCache(): void {
   cacheTimestamp = 0;
   try {
     localStorage.removeItem(CACHE_KEY);
-  } catch (e) {
+  } catch {
     // Ignore
   }
 }
@@ -123,15 +129,15 @@ async function fetchRepoList(): Promise<RepoInfo[]> {
   const repos: RepoInfo[] = [];
   let page = 1;
   const perPage = 100;
-  
+
   // Fetch RedHatInsights repos
   while (true) {
     try {
       const response = await fetch(
         `https://api.github.com/orgs/${GITHUB_ORG}/repos?per_page=${perPage}&page=${page}`,
-        { headers: { 'Accept': 'application/vnd.github.v3+json' } }
+        { headers: { Accept: 'application/vnd.github.v3+json' } },
       );
-      
+
       if (!response.ok) {
         if (response.status === 403) {
           console.warn('GitHub API rate limit reached');
@@ -141,21 +147,25 @@ async function fetchRepoList(): Promise<RepoInfo[]> {
         }
         break;
       }
-      
+
       const data = await response.json();
       if (!Array.isArray(data) || data.length === 0) break;
-      
+
       for (const repo of data) {
         if (repo.name && !repo.archived) {
           // Skip template/starter repos - they have placeholder values
           const name = repo.name.toLowerCase();
-          if (name.includes('starter') || name.includes('template') || name.includes('boilerplate')) {
+          if (
+            name.includes('starter') ||
+            name.includes('template') ||
+            name.includes('boilerplate')
+          ) {
             continue;
           }
           repos.push({ org: GITHUB_ORG, name: repo.name });
         }
       }
-      
+
       if (data.length < perPage) break;
       page++;
     } catch (error) {
@@ -163,10 +173,10 @@ async function fetchRepoList(): Promise<RepoInfo[]> {
       break;
     }
   }
-  
+
   // Add special case repos
   repos.push(...EXTRA_REPOS);
-  
+
   return repos;
 }
 
@@ -203,12 +213,12 @@ interface FrontendYaml {
  */
 async function fetchAppName(repo: RepoInfo): Promise<string | null> {
   const branches = ['master', 'main'];
-  
+
   for (const branch of branches) {
     try {
       const url = `https://raw.githubusercontent.com/${repo.org}/${repo.name}/${branch}/package.json`;
       const response = await fetch(url);
-      
+
       if (response.ok) {
         const pkg: PackageJson = await response.json();
         if (pkg.insights?.appname) {
@@ -219,7 +229,7 @@ async function fetchAppName(repo: RepoInfo): Promise<string | null> {
       // Ignore errors, try next branch
     }
   }
-  
+
   return null;
 }
 
@@ -249,12 +259,12 @@ function extractFrontendCRDPath(fecConfigContent: string): string | null {
  */
 async function fetchFrontendYamlPath(repo: RepoInfo): Promise<string | null> {
   const branches = ['master', 'main'];
-  
+
   for (const branch of branches) {
     try {
       const url = `https://raw.githubusercontent.com/${repo.org}/${repo.name}/${branch}/fec.config.js`;
       const response = await fetch(url);
-      
+
       if (response.ok) {
         const content = await response.text();
         const path = extractFrontendCRDPath(content);
@@ -266,43 +276,45 @@ async function fetchFrontendYamlPath(repo: RepoInfo): Promise<string | null> {
       // Ignore errors, try next branch
     }
   }
-  
+
   return null;
 }
 
 /**
  * Fetch frontend YAML and extract modules with their routes
  */
-async function fetchModulesWithRoutes(repo: RepoInfo): Promise<ModuleWithRoutes[]> {
+async function fetchModulesWithRoutes(
+  repo: RepoInfo,
+): Promise<ModuleWithRoutes[]> {
   const branches = ['master', 'main'];
   const modules: ModuleWithRoutes[] = [];
-  
+
   // First, try to get the actual YAML path from fec.config.js
   const customPath = await fetchFrontendYamlPath(repo);
-  
+
   // Build list of paths to try
-  const yamlPaths = customPath 
+  const yamlPaths = customPath
     ? [customPath]
     : ['deploy/frontend.yaml', 'deploy/frontend.yml'];
-  
+
   for (const branch of branches) {
     for (const yamlPath of yamlPaths) {
       try {
         const url = `https://raw.githubusercontent.com/${repo.org}/${repo.name}/${branch}/${yamlPath}`;
         const response = await fetch(url);
-        
+
         if (response.ok) {
           const text = await response.text();
           const yaml = jsyaml.load(text) as FrontendYaml;
-          
+
           for (const obj of yaml?.objects || []) {
             const yamlModules = obj.spec?.module?.modules;
             if (yamlModules) {
               for (const mod of yamlModules) {
                 if (mod.id && mod.routes) {
                   const pathnames = mod.routes
-                    .filter(r => r.pathname)
-                    .map(r => r.pathname as string);
+                    .filter((r) => r.pathname)
+                    .map((r) => r.pathname as string);
                   if (pathnames.length > 0) {
                     modules.push({
                       moduleId: mod.id,
@@ -313,7 +325,7 @@ async function fetchModulesWithRoutes(repo: RepoInfo): Promise<ModuleWithRoutes[
               }
             }
           }
-          
+
           if (modules.length > 0) {
             return modules;
           }
@@ -323,7 +335,7 @@ async function fetchModulesWithRoutes(repo: RepoInfo): Promise<ModuleWithRoutes[
       }
     }
   }
-  
+
   return modules;
 }
 
@@ -334,15 +346,15 @@ async function fetchModulesWithRoutes(repo: RepoInfo): Promise<ModuleWithRoutes[
  */
 async function buildRegistry(): Promise<Map<string, AppRegistryEntry>> {
   const registry = new Map<string, AppRegistryEntry>();
-  
+
   reportProgress('Fetching repo list...');
   const repos = await fetchRepoList();
   console.log(`[AppRegistry] Found ${repos.length} repos, scanning...`);
-  
+
   const concurrency = FETCH_CONCURRENCY;
   let scanned = 0;
   let foundCount = 0;
-  
+
   for (let i = 0; i < repos.length; i += concurrency) {
     const batch = repos.slice(i, i + concurrency);
     const batchResults = await Promise.all(
@@ -350,12 +362,12 @@ async function buildRegistry(): Promise<Map<string, AppRegistryEntry>> {
         repo,
         appname: await fetchAppName(repo),
         modules: await fetchModulesWithRoutes(repo),
-      }))
+      })),
     );
-    
+
     for (const { repo, appname, modules } of batchResults) {
       const githubRepo = `${repo.org}/${repo.name}`;
-      
+
       // Register by package.json appname (prefixed to distinguish from paths)
       if (appname && !registry.has(`appname:${appname}`)) {
         foundCount++;
@@ -364,7 +376,7 @@ async function buildRegistry(): Promise<Map<string, AppRegistryEntry>> {
           githubRepo,
         });
       }
-      
+
       // Register by frontend.yaml module routes (by pathname)
       for (const mod of modules) {
         for (const pathname of mod.pathnames) {
@@ -378,11 +390,13 @@ async function buildRegistry(): Promise<Map<string, AppRegistryEntry>> {
         }
       }
     }
-    
+
     scanned += batch.length;
-    reportProgress(`Scanning: ${scanned}/${repos.length} (found ${foundCount} apps)`);
+    reportProgress(
+      `Scanning: ${scanned}/${repos.length} (found ${foundCount} apps)`,
+    );
   }
-  
+
   reportProgress(`Done! Found ${foundCount} apps`);
   console.log(`[AppRegistry] Found ${foundCount} apps`);
   return registry;
@@ -397,7 +411,7 @@ export async function fetchAppRegistry(): Promise<AppRegistryEntry[]> {
     reportProgress('Using cached data');
     return Array.from(registryCache.values());
   }
-  
+
   // Check localStorage cache
   const stored = loadFromStorage();
   if (stored && Date.now() - stored.timestamp < CACHE_TTL) {
@@ -407,11 +421,11 @@ export async function fetchAppRegistry(): Promise<AppRegistryEntry[]> {
     cacheTimestamp = stored.timestamp;
     return dedupeEntries(stored.data);
   }
-  
+
   // Build fresh registry
   try {
     registryCache = await buildRegistry();
-    
+
     // If we got no results but have stale cache, use stale cache
     if (registryCache.size === 0 && stored) {
       console.log('[AppRegistry] No results from API, using stale cache');
@@ -420,17 +434,17 @@ export async function fetchAppRegistry(): Promise<AppRegistryEntry[]> {
       cacheTimestamp = stored.timestamp;
       return dedupeEntries(stored.data);
     }
-    
+
     cacheTimestamp = Date.now();
-    
+
     // Save map entries (key-value pairs) to localStorage
     const mapEntries = Array.from(registryCache.entries());
     saveToStorage(mapEntries);
-    
+
     return Array.from(registryCache.values());
   } catch (error) {
     console.error('Error building app registry:', error);
-    
+
     // Fallback: use stale cache if available
     if (stored) {
       console.log('[AppRegistry] Using stale cache due to error');
@@ -439,7 +453,7 @@ export async function fetchAppRegistry(): Promise<AppRegistryEntry[]> {
       cacheTimestamp = stored.timestamp;
       return dedupeEntries(stored.data);
     }
-    
+
     throw error;
   }
 }
@@ -447,41 +461,49 @@ export async function fetchAppRegistry(): Promise<AppRegistryEntry[]> {
 /**
  * Gets the entry for an app by pathname and/or appname
  */
-export async function getAppRegistryEntry(appname: string, pathname?: string): Promise<AppRegistryEntry | undefined> {
+export async function getAppRegistryEntry(
+  appname: string,
+  pathname?: string,
+): Promise<AppRegistryEntry | undefined> {
   // Ensure registry is loaded
   if (!registryCache || Date.now() - cacheTimestamp >= CACHE_TTL) {
     await fetchAppRegistry();
   }
-  
+
   if (!registryCache) return undefined;
-  
+
   // First, try to match by pathname (more specific)
   if (pathname) {
     // Try exact match
     const exactMatch = registryCache.get(`path:${pathname}`);
     if (exactMatch) return exactMatch;
-    
+
     // Try longest prefix match
     let bestMatch: AppRegistryEntry | undefined;
     let bestMatchLength = 0;
-    
+
     for (const [key, entry] of registryCache.entries()) {
       if (!key.startsWith('path:')) continue;
       const path = key.slice(5); // Remove 'path:' prefix
-      
+
       // Check if pathname starts with this path at a boundary
-      if (pathname === path || 
-          (pathname.startsWith(path) && (pathname[path.length] === '/' || pathname[path.length] === '?' || pathname[path.length] === undefined))) {
+      if (
+        pathname === path ||
+        (pathname.startsWith(path) &&
+          (pathname[path.length] === '/' ||
+            pathname[path.length] === '?' ||
+            pathname[path.length] === undefined))
+      ) {
         if (path.length > bestMatchLength) {
           bestMatch = entry;
           bestMatchLength = path.length;
         }
       }
     }
-    
+
     if (bestMatch) return bestMatch;
   }
-  
+
   // Fall back to appname match
   return registryCache.get(`appname:${appname}`);
 }

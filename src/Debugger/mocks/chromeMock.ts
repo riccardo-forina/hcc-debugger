@@ -16,6 +16,7 @@ export const mockUser: ChromeUser = {
   },
   identity: {
     account_number: '12345',
+    org_id: '67890',
     type: 'User',
     user: {
       username: 'test-user@redhat.com',
@@ -29,6 +30,7 @@ export const mockUser: ChromeUser = {
     },
     internal: {
       org_id: '67890',
+      account_id: '12345',
     },
   },
 };
@@ -39,7 +41,7 @@ export const mockUserAllEntitled: ChromeUser = {
     Object.keys(mockUser.entitlements).map((key) => [
       key,
       { is_entitled: true, is_trial: false },
-    ])
+    ]),
   ),
 };
 
@@ -49,7 +51,7 @@ export const mockUserNoneEntitled: ChromeUser = {
     Object.keys(mockUser.entitlements).map((key) => [
       key,
       { is_entitled: false, is_trial: false },
-    ])
+    ]),
   ),
 };
 
@@ -108,4 +110,3 @@ export const mockPermissionsMany = [
   { permission: 'image-builder:compose:read' },
   { permission: 'image-builder:compose:write' },
 ];
-
